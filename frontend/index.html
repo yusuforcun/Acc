@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>blockchain hesap yöneticisi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="header">
+    <h1 class="title">blockchain hesap yöneticisi</h1>
+    <button type="button" id="walletConnectBtn" class="wallet-btn" aria-label="Cüzdan bağla">
+      <span class="wallet-btn__icon"></span>
+      <span class="wallet-btn__text">cüzdan bağla</span>
+    </button>
+  </header>
+
+  <main class="container">
+    <section class="wallet-data" id="walletDataSection" aria-hidden="true">
+      <div class="wallet-data__assets">
+        <h2 class="wallet-data__title">Varlıklarım</h2>
+        <div id="assetsContent" class="wallet-data__content">
+          <p class="wallet-data__empty">Cüzdan bağlayın</p>
+        </div>
+      </div>
+      <div class="wallet-data__transactions">
+        <h2 class="wallet-data__title">Son İşlemler</h2>
+        <div id="transactionsContent" class="wallet-data__content">
+          <p class="wallet-data__empty">Cüzdan bağlayın</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="container__main">
+    <section class="left-section">
+      <div class="cloud-portfolio">
+        <div class="shares">5 hisse</div>
+        <div class="value">5.600 ₺ değer</div>
+      </div>
+
+      <div class="price-input-group">
+        <label for="price">şu fiyatta :</label>
+        <input type="text" id="price" placeholder="Örn: 4750" inputmode="numeric" autocomplete="off">
+      </div>
+
+      <div class="buttons">
+        <button type="button" class="btn btn-buy">al</button>
+        <button type="button" class="btn btn-sell">sat</button>
+      </div>
+
+      <div class="ai-yorum">
+        <div class="label">AI yorumu</div>
+        <p>Mevcut piyasa koşullarında dikkatli olmanız önerilir. Fiyat girişi yapmadan önce stop-loss seviyesi belirlemeniz faydalı olabilir.</p>
+      </div>
+
+      <div class="transaction-status">işlem oluşturuldu :</div>
+    </section>
+
+    <section class="right-section">
+      <div class="chart-container">
+        <div class="chart-header">
+          <span class="chart-axis">3800 — 4700 ₺</span>
+        </div>
+        <div class="chart-wrapper" id="chart"></div>
+        <div class="current-price-line">
+          <span class="label">Güncel fiyat</span>
+          <span class="value">4.793,06 ₺</span>
+        </div>
+      </div>
+
+      <div class="asset-nav">
+        <button type="button" class="asset-nav-item arrows-left">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+          altın
+        </button>
+        <span class="asset-current">bitcoin</span>
+        <button type="button" class="asset-nav-item">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+          gümüş
+        </button>
+      </div>
+
+      <div class="market-trend">son 24 saatte yükselişte</div>
+
+      <div class="ai-tahmini">
+        <div class="label">AI tahmini</div>
+        <p>Kısa vadede yükseliş eğiliminin devam etmesi bekleniyor. Son 24 saatlik hareket desteği güçlendirdi. Hedef bölge: 4.900 — 5.000 ₺ aralığı.</p>
+      </div>
+    </section>
+    </section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

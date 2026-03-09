@@ -1,0 +1,12 @@
+{
+  "name": "blockchain-hesap-yoneticisi",
+  "version": "0.1.0",
+  "description": "Blockchain hesap yöneticisi - Hackathon projesi",
+  "scripts": {
+    "serve": "npx --yes serve . -p 3000",
+    "dev": "npx --yes serve . -p 3000"
+  },
+  "keywords": ["blockchain", "wallet", "crypto"],
+  "author": "",
+  "license": "MIT"
+}
