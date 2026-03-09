@@ -4,7 +4,14 @@
   "description": "Blockchain hesap yöneticisi - Hackathon projesi",
   "scripts": {
     "serve": "npx --yes serve . -p 3000",
-    "dev": "npx --yes serve . -p 3000"
+    "dev": "npx --yes serve . -p 3000",
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.5",
+    "ethers": "^6.13.0",
+    "hardhat": "^2.22.0"
   },
   "keywords": ["blockchain", "wallet", "crypto"],
   "author": "",

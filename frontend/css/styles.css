@@ -139,6 +139,13 @@ body {
   display: grid;
 }
 
+.wallet-data__network {
+  grid-column: 1 / -1;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: -8px;
+}
+
 .wallet-data__assets,
 .wallet-data__transactions {
   background: var(--surface);

@@ -13,11 +13,13 @@ import {
   onChainChanged,
 } from '../../blockchain/wallet.js';
 import { getAssets, getTransactions } from '../../blockchain/api.js';
+import { CHAIN_NAMES } from '../../blockchain/config.js';
 
 // DOM
 const walletBtn = document.getElementById('walletConnectBtn');
 const walletText = walletBtn?.querySelector('.wallet-btn__text');
 const walletDataSection = document.getElementById('walletDataSection');
+const networkBadge = document.getElementById('networkBadge');
 const assetsContent = document.getElementById('assetsContent');
 const transactionsContent = document.getElementById('transactionsContent');
 
@@ -48,6 +50,13 @@ async function loadWalletData(address) {
   if (!walletDataSection || !assetsContent || !transactionsContent) return;
 
   const chainId = await getChainId();
+  const chainIdDec = chainId?.startsWith?.('0x') ? parseInt(chainId, 16) : parseInt(chainId || '1', 10);
+  const networkName = CHAIN_NAMES[chainIdDec] || `Ağ ${chainIdDec}`;
+
+  if (networkBadge) {
+    networkBadge.textContent = `Ağ: ${networkName}`;
+    networkBadge.style.display = 'block';
+  }
 
   assetsContent.innerHTML = '<p class="wallet-data__loading">Yükleniyor...</p>';
   transactionsContent.innerHTML = '<p class="wallet-data__loading">Yükleniyor...</p>';
@@ -137,6 +146,7 @@ async function updateWalletUI(address) {
     if (walletDataSection) {
       walletDataSection.classList.remove('is-visible');
       walletDataSection.setAttribute('aria-hidden', 'true');
+      if (networkBadge) networkBadge.style.display = 'none';
       assetsContent.innerHTML = '<p class="wallet-data__empty">Cüzdan bağlayın</p>';
       transactionsContent.innerHTML = '<p class="wallet-data__empty">Cüzdan bağlayın</p>';
     }

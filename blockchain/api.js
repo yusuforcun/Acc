@@ -7,7 +7,7 @@
 
 import {
   ETHERSCAN_API_KEY,
-  EXPLORER_APIS,
+  ETHERSCAN_V2_API,
   NATIVE_SYMBOLS,
 } from './config.js';
 
@@ -15,23 +15,25 @@ const TX_LIMIT = 10;
 const TOKEN_TX_LIMIT = 10;
 
 /**
- * Explorer API base URL'ini chainId'ye göre döndürür
+ * Etherscan API V2 isteği
  * @param {string} chainId
- * @returns {string | null}
- */
-function getApiUrl(chainId) {
-  const id = chainId ? parseInt(chainId, 10) : 1;
-  return EXPLORER_APIS[id] ?? EXPLORER_APIS[1];
-}
-
-/**
- * API isteği atar
- * @param {string} baseUrl
  * @param {Record<string, string>} params
  * @returns {Promise<object>}
  */
-async function fetchApi(baseUrl, params) {
-  const url = new URL(baseUrl);
+function parseChainId(chainId) {
+  if (!chainId) return '1';
+  const str = String(chainId).trim();
+  if (str.startsWith('0x') || str.startsWith('0X')) {
+    return String(parseInt(str, 16) || 1);
+  }
+  return String(parseInt(str, 10) || 1);
+}
+
+async function fetchApi(chainId, params) {
+  const id = parseChainId(chainId);
+
+  const url = new URL(ETHERSCAN_V2_API);
+  url.searchParams.set('chainid', id);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   if (ETHERSCAN_API_KEY) {
     url.searchParams.set('apikey', ETHERSCAN_API_KEY);
@@ -41,8 +43,17 @@ async function fetchApi(baseUrl, params) {
   if (!res.ok) throw new Error(`API hatası: ${res.status}`);
 
   const data = await res.json();
-  if (data.status === '0' && data.message?.toLowerCase().includes('error')) {
-    throw new Error(data.result || data.message || 'API hatası');
+  if (data.status === '0' || data.message === 'NOTOK') {
+    const msg = typeof data.result === 'string' ? data.result : (data.message || 'API hatası');
+    const msgLower = msg.toLowerCase();
+
+    if (msgLower.includes('deprecated') || msgLower.includes('api key')) {
+      throw new Error('Etherscan API V2 için api key gerekli. config.js içine ekleyin: etherscan.io/apidashboard');
+    }
+    if (msgLower.includes('no transactions found') || msgLower.includes('no token transfers found')) {
+      return { status: '1', result: [] };
+    }
+    throw new Error(msg);
   }
   return data;
 }
@@ -54,7 +65,9 @@ async function fetchApi(baseUrl, params) {
  * @returns {string}
  */
 function formatAmount(wei, decimals = 18) {
-  const value = BigInt(wei);
+  const str = String(wei || '0').trim();
+  if (!/^\d+$/.test(str)) return '0';
+  const value = BigInt(str);
   const divisor = BigInt(10 ** decimals);
   const whole = value / divisor;
   const frac = value % divisor;
@@ -86,30 +99,30 @@ function formatTime(ts) {
  * @returns {Promise<{ balance: string, symbol: string, tokens: Array }>}
  */
 export async function getAssets(address, chainId = '1') {
-  const baseUrl = getApiUrl(chainId);
   const symbol = NATIVE_SYMBOLS[parseInt(chainId, 10)] || 'ETH';
 
   const [balanceRes, tokenRes] = await Promise.all([
-    fetchApi(baseUrl, {
+    fetchApi(chainId, {
       module: 'account',
       action: 'balance',
       address,
       tag: 'latest',
     }),
-    fetchApi(baseUrl, {
+    fetchApi(chainId, {
       module: 'account',
       action: 'tokentx',
       address,
       page: '1',
-      offset: String(50),
+      offset: '50',
       sort: 'desc',
     }).catch(() => ({ result: [] })),
   ]);
 
   const balance = formatAmount(balanceRes.result || '0', 18);
 
+  const tokenList = Array.isArray(tokenRes.result) ? tokenRes.result : [];
   const tokenMap = new Map();
-  for (const tx of tokenRes.result || []) {
+  for (const tx of tokenList) {
     const key = tx.contractAddress?.toLowerCase();
     if (!key) continue;
     const dec = parseInt(tx.tokenDecimal || '18', 10);
@@ -141,12 +154,11 @@ export async function getAssets(address, chainId = '1') {
  * @returns {Promise<Array>}
  */
 export async function getTransactions(address, chainId = '1') {
-  const baseUrl = getApiUrl(chainId);
   const symbol = NATIVE_SYMBOLS[parseInt(chainId, 10)] || 'ETH';
   const addr = address.toLowerCase();
 
   const [txRes, tokenRes] = await Promise.all([
-    fetchApi(baseUrl, {
+    fetchApi(chainId, {
       module: 'account',
       action: 'txlist',
       address,
@@ -156,7 +168,7 @@ export async function getTransactions(address, chainId = '1') {
       offset: String(TX_LIMIT),
       sort: 'desc',
     }),
-    fetchApi(baseUrl, {
+    fetchApi(chainId, {
       module: 'account',
       action: 'tokentx',
       address,
@@ -166,7 +178,10 @@ export async function getTransactions(address, chainId = '1') {
     }).catch(() => ({ result: [] })),
   ]);
 
-  const normals = (txRes.result || []).map((tx) => ({
+  const txList = Array.isArray(txRes.result) ? txRes.result : [];
+  const tokenTxList = Array.isArray(tokenRes.result) ? tokenRes.result : [];
+
+  const normals = txList.map((tx) => ({
     hash: tx.hash,
     time: tx.timeStamp,
     timeFormatted: formatTime(tx.timeStamp),
@@ -178,7 +193,7 @@ export async function getTransactions(address, chainId = '1') {
     isToken: false,
   }));
 
-  const tokens = (tokenRes.result || []).map((tx) => ({
+  const tokens = tokenTxList.map((tx) => ({
     hash: tx.hash,
     time: tx.timeStamp,
     timeFormatted: formatTime(tx.timeStamp),
